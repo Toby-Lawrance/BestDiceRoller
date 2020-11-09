@@ -21,4 +21,3 @@ LeftBracket: ('(') ;
 RightBracket: (')') ;
 Literal : ('-')?DIGIT+(('.') DIGIT+)? ;
 WhiteSpace : (' '|'\t'|'\r'|'\n')+ -> skip ;
-
