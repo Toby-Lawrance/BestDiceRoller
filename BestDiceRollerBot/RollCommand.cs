@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.Commands;
+using Antlr4.Runtime;
 
 namespace BestDiceRollerBot
 {
@@ -9,7 +10,14 @@ namespace BestDiceRollerBot
         [Summary("Rolls the dice")]
         public Task RollDice(string argument = "")
         {
-            return ReplyAsync("4: as chosen by a fair and Balanced Roll");
+            AntlrInputStream inputStream = new AntlrInputStream(argument);
+            DiceLexer dl = new DiceLexer(inputStream);
+            CommonTokenStream cts = new CommonTokenStream(dl);
+            DiceParser dp = new DiceParser(cts);
+            DiceParser.ExpressionContext context = dp.expression();
+            DiceEvaluator de = new DiceEvaluator();
+            double Result = de.Visit(context);
+            return ReplyAsync($"Evaluates to: {Result}");
         }
     }
 }
