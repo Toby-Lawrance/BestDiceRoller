@@ -16,6 +16,7 @@ namespace BestDiceRollerShell
             _client = new DiscordSocketClient();
 
             _client.Log += Log;
+            _client.MessageReceived += MessageReceived;
 
             // Remember to keep token private or to read it from an 
             // external source! In this case, we are reading the token 
@@ -24,11 +25,19 @@ namespace BestDiceRollerShell
             // Internet or by using other methods such as reading from 
             // a configuration.
             await _client.LoginAsync(TokenType.Bot,
-                "",
-                await _client.StartAsync());
+                secrets.Default.Token);
+            await _client.StartAsync();
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private async Task MessageReceived(SocketMessage message)
+        {
+            if (message.Content == "#ping")
+            {
+                await message.Channel.SendMessageAsync("Pong");
+            }
         }
 
         private Task Log(LogMessage msg)

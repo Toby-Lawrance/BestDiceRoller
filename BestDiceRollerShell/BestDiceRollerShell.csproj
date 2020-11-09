@@ -6,22 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BestDiceRoller\BestDiceRoller.fsproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="secrets.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>secrets.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="secrets.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>secrets.Designer.cs</LastGenOutput>
-    </None>
   </ItemGroup>
 
 </Project>
