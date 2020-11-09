@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord.Commands;
 
-namespace BestDiceRoller
+namespace BestDiceRollerBot
 {
     public class PingCommand : ModuleBase<SocketCommandContext>
     {
