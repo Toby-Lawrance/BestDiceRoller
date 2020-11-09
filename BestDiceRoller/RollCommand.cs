@@ -9,8 +9,7 @@ namespace BestDiceRoller
         [Summary("Rolls the dice")]
         public Task RollDice(string argument = "")
         {
-            var dr = new DiceRoller();
-            return ReplyAsync(dr.RollDice(argument));
+            return ReplyAsync("4: as chosen by a fair and Balanced Roll");
         }
     }
 }
