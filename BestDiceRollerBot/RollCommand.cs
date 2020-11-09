@@ -1,23 +1,43 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord.Commands;
 using Antlr4.Runtime;
+using Discord;
 
 namespace BestDiceRollerBot
 {
     public class RollCommand : ModuleBase<SocketCommandContext>
     {
-        [Command("r")]
-        [Summary("Rolls the dice")]
-        public Task RollDice(string argument = "")
+        private (double,string) EvaluateExpression(string exp)
         {
-            AntlrInputStream inputStream = new AntlrInputStream(argument);
-            DiceLexer dl = new DiceLexer(inputStream);
-            CommonTokenStream cts = new CommonTokenStream(dl);
-            DiceParser dp = new DiceParser(cts);
-            DiceParser.ExpressionContext context = dp.expression();
-            DiceEvaluator de = new DiceEvaluator();
-            double Result = de.Visit(context);
-            return ReplyAsync($"Evaluates to: {Result}");
+            Console.WriteLine($"Evaluating: {exp}");
+            var inputStream = new AntlrInputStream(exp);
+            var lexer = new DiceLexer(inputStream);
+            var tokenStream = new CommonTokenStream(lexer);
+            var parser = new DiceParser(tokenStream);
+            var context = parser.expression();
+            var evaluator = new DiceEvaluator();
+            return evaluator.Visit(context);
+        }
+        
+        [Command("r")]
+        [Alias("roll","Roll","R")]
+        [Summary("Rolls the dice")]
+        public Task RollDice([Remainder]string argument = "")
+        {
+            var requests = argument.Split(',').Select(arg => arg.Trim()).Select(e => Task.Run(() => EvaluateExpression(e))).ToArray();
+            Task.WaitAll(requests);
+            var results = requests.Select(t => t.Result).ToArray();
+            var text = string.Join(", ", results.Select(t => t.Item2));
+            var totals = string.Join(", ", results.Select(t => t.Item1));
+            var output = $"{this.Context.User.Mention} => {text} = {totals}";
+            if (output.Length > DiscordConfig.MaxMessageSize)
+            {
+                output = $"{this.Context.User.Mention} => {argument} (shortened) = {totals}";
+            }
+
+            return ReplyAsync(output);
         }
     }
 }

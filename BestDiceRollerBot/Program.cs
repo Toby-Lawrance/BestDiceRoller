@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -11,8 +12,21 @@ namespace BestDiceRollerBot
     class Program
     {
         private DiscordSocketClient _client;
+        public static readonly RandomProducer Generator = new RandomProducer();
 
-        static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
+        static void Main(string[] args)
+        {
+            var p = new Program();
+            try
+            {
+                p.MainAsync().GetAwaiter().GetResult();
+            }
+            finally
+            {
+                p._client?.LogoutAsync().GetAwaiter().GetResult();
+            }
+            
+        }
 
         public async Task MainAsync()
         {
@@ -24,6 +38,10 @@ namespace BestDiceRollerBot
             var handler = new CommandHandler(_client,commandService);
             await handler.InstallCommandsAsync();
 
+            Console.CancelKeyPress +=  delegate(object sender, ConsoleCancelEventArgs e)
+            {
+               _client.LogoutAsync().GetAwaiter().GetResult();
+            };
 
             var secretsContents = await File.ReadAllTextAsync("secrets.json");
             var secrets = JObject.Parse(secretsContents);
