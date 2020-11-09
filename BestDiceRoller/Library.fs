@@ -1,5 +1,5 @@
 ﻿namespace BestDiceRoller
 
-module Say =
-    let hello name =
-        printfn "Hello %s" name
+type DiceRoller = 
+    member this.fairAndBalancedRoll() = 4
+    member this.RollDice(input) = this.fairAndBalancedRoll()

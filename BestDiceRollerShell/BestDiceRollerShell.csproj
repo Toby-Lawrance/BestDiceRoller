@@ -3,6 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>BestDiceRoller</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,6 +12,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BestDiceRoller\BestDiceRoller.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="secrets.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

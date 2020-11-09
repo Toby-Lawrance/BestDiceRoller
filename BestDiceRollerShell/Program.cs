@@ -1,9 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
+using Newtonsoft.Json.Linq;
 
-namespace BestDiceRollerShell
+namespace BestDiceRoller
 {
     class Program
     {
@@ -16,7 +19,14 @@ namespace BestDiceRollerShell
             _client = new DiscordSocketClient();
 
             _client.Log += Log;
-            _client.MessageReceived += MessageReceived;
+
+            var commandService = new CommandService();
+            var handler = new CommandHandler(_client,commandService);
+            await handler.InstallCommandsAsync();
+
+
+            var secretsContents = await File.ReadAllTextAsync("secrets.json");
+            var secrets = JObject.Parse(secretsContents);
 
             // Remember to keep token private or to read it from an 
             // external source! In this case, we are reading the token 
@@ -25,19 +35,11 @@ namespace BestDiceRollerShell
             // Internet or by using other methods such as reading from 
             // a configuration.
             await _client.LoginAsync(TokenType.Bot,
-                secrets.Default.Token);
+                secrets["Token"].Value<string>());
             await _client.StartAsync();
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
-        }
-
-        private async Task MessageReceived(SocketMessage message)
-        {
-            if (message.Content == "#ping")
-            {
-                await message.Channel.SendMessageAsync("Pong");
-            }
         }
 
         private Task Log(LogMessage msg)
