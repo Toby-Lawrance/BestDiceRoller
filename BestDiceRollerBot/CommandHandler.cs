@@ -43,7 +43,7 @@ namespace BestDiceRollerBot
             int argPos = 0;
 
             // Determine if the message is a command based on the prefix
-            if (!(message.HasCharPrefix('~', ref argPos) ||
+            if (!(message.HasCharPrefix('-', ref argPos) ||
                   message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
