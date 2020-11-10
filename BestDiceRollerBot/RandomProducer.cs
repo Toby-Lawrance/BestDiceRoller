@@ -22,11 +22,11 @@ namespace BestDiceRollerBot
                 _gen.GetBytes(buffer);
             }
             var span = (uint)Math.Abs(exMax - inMin);
-            var t = span * (uint)(Math.Floor(Math.Pow(2, genSize)) / span);
+            var t = span * (Math.Floor(Math.Pow(2.0, genSize) / span));
             var val = BitConverter.ToUInt32(buffer);
             while (val >= t) //Rare but may happen, doing so prevents any bias
             {
-                Console.WriteLine("Re-rolling to prevent bias");
+                Console.WriteLine($"Re-rolling to prevent bias: val{val} t{t}");
                 lock (_gen)
                 {
                     _gen.GetBytes(buffer);
