@@ -101,6 +101,11 @@ namespace BestDiceRollerBot
 
         private (double, string) RollExplodingDice(int diceSize)
         {
+            if (diceSize == 1)
+            {
+                return (1, "[Rolling a d1! is a bad idea: 1]");
+            }
+            
             var baseRoll = Program.Generator.Get(1,diceSize + 1);
             var extraRolls = LINQExtension.Unfold<int,int>(baseRoll, i =>
             {
