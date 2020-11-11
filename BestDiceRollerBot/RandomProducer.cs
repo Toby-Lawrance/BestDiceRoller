@@ -7,7 +7,7 @@ namespace BestDiceRollerBot
     public class RandomProducer
     {
         private readonly RNGCryptoServiceProvider _gen;
-        private readonly byte genSize = 32;
+        private readonly byte genSize = sizeof(uint);
 
         public RandomProducer()
         {
@@ -16,13 +16,13 @@ namespace BestDiceRollerBot
 
         public int Get(int inMin, int exMax)
         {
-            var buffer = new byte[genSize];
+            var buffer = new byte[sizeof(uint)];
             lock (_gen)
             {
                 _gen.GetBytes(buffer);
             }
             var span = (uint)Math.Abs(exMax - inMin);
-            var t = span * (Math.Floor(Math.Pow(2.0, genSize) / span));
+            var t = span * (Math.Floor(Math.Pow(2.0, sizeof(uint)) / span));
             var val = BitConverter.ToUInt32(buffer);
             while (val >= t) //Rare but may happen, doing so prevents any bias
             {
