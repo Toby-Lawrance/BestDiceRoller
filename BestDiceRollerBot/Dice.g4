@@ -3,11 +3,15 @@
 /*
  * Parser Rules
  */
- expression: multiplyTerm (TermOperator multiplyTerm)*  ;
- multiplyTerm: powerTerm (MultiplyOperator powerTerm)* ;
+ expression: multiplyTerm (termOperation multiplyTerm)*  ;
+ termOperation: (AddOperator | SubOperator) ;
+ multiplyTerm: powerTerm (multOperation powerTerm)* ;
+ multOperation: (MultOperator | DivOperator) ;
  powerTerm: coreTerm (PowerOperator coreTerm)? ;
- coreTerm: Literal | dieRoll | LeftBracket expression RightBracket ;
- dieRoll: (Natural)? DieD Natural (ExplodeMark)? ;
+ coreTerm: decimalNum  | dieRoll  | LeftBracket expression RightBracket ;
+ dieRoll: (naturalNum)? DieD naturalNum (ExplodeMark)? ;
+ naturalNum: Natural;
+ decimalNum: (SubOperator)?Natural(Fractional)?;
 
 /*
  * Lexer Rules
@@ -17,11 +21,13 @@ fragment POSITIVEDIGIT : [1-9] ;
 
 DieD : ('d' | 'D') ;
 ExplodeMark : '!' ;
-Natural : POSITIVEDIGIT(DIGIT)* ;
-TermOperator : ('+'|'-') ;
-MultiplyOperator: ('*'|'/') ;
-PowerOperator: ('^') ;
-LeftBracket: ('(') ;
-RightBracket: (')') ;
-Literal : ('-')?DIGIT+(('.') DIGIT+)? ;
-WhiteSpace : (' '|'\t'|'\r'|'\n')+ -> skip ;
+Natural : (POSITIVEDIGIT)DIGIT* ;
+Fractional : ('.')DIGIT+ ;
+AddOperator : '+' ;
+SubOperator : '-' ;
+MultOperator: '*' ;
+DivOperator: '/' ;
+PowerOperator: '^' ;
+LeftBracket: '(' ;
+RightBracket: ')' ;
+WhiteSpace : [ \t\n\r]+ -> skip ;
