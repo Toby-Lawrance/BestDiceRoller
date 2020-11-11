@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Antlr4.Build.Tasks;
 
@@ -16,13 +17,13 @@ namespace BestDiceRollerBot
 
         public int Get(int inMin, int exMax)
         {
-            var buffer = new byte[sizeof(uint)];
+            var buffer = new byte[genSize];
             lock (_gen)
             {
                 _gen.GetBytes(buffer);
             }
             var span = (uint)Math.Abs(exMax - inMin);
-            var t = span * (Math.Floor(Math.Pow(2.0, sizeof(uint)) / span));
+            var t = span * (Math.Floor(Math.Pow(2.0, (genSize*8)) / span));
             var val = BitConverter.ToUInt32(buffer);
             while (val >= t) //Rare but may happen, doing so prevents any bias
             {
