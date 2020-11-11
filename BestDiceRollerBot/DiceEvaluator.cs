@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
+using Discord.Rest;
 
 namespace BestDiceRollerBot
 {
@@ -76,29 +77,74 @@ namespace BestDiceRollerBot
             var coreValue = Visit(context.coreTerm(0));
             var powerSymbol = context.PowerOperator();
             if (powerSymbol == null) return coreValue;
-            
+
             var power = Visit(context.coreTerm(1));
             var numerical = Math.Pow(coreValue.Item1, power.Item1);
             var textual = $"{coreValue.Item2}^{power.Item2}";
             return (numerical, textual);
-
         }
 
 
         public override (double, string) VisitCoreTerm([NotNull] DiceParser.CoreTermContext context)
         {
             var lit = context.decimalNum();
-            var die = context.dieRoll();
+            var dice = context.diceRoll();
+            var keepExpression = context.keepExpression();
             var expression = context.expression();
 
             if (lit is not null) return Visit(lit);
-            if (die is not null)
-            {
-                return Visit(die);
-            }
+            if (keepExpression is not null) return Visit(keepExpression);
+            if (dice is not null) return Visit(dice);
 
             var (total, textV) = Visit(expression);
             return (total, $"({textV})");
+        }
+
+        public override (double, string) VisitKeepExpression(DiceParser.KeepExpressionContext context)
+        {
+            var options = context.keepOptions();
+            var diceRoll = options.diceRoll();
+            var expressions = options.expression();
+            bool keepHighest = context.KeepHighest() is not null;
+            var numToKeep = int.Parse(context.naturalNum().GetText());
+            IEnumerable<(double, string)> rolls;
+            if (diceRoll is not null)
+            {
+                var numDice = diceRoll.naturalNum() is not null
+                    ? int.Parse(diceRoll.naturalNum().GetText())
+                    : (numToKeep + 1);
+                rolls = Enumerable.Range(0, numDice).Select(_ => Visit(diceRoll.dieRoll()));
+            }
+            else
+            {
+                rolls = expressions.Select(Visit);
+            }
+
+            var count = 0;
+            var indexed = rolls.Select(r => (count++,(r.Item1,r.Item2)));
+
+            var orderedRolls = keepHighest
+                ? indexed.OrderByDescending(x => x.Item2.Item1).ToList()
+                : indexed.OrderBy(x => x.Item2.Item1).ToList();
+
+            var numerical = orderedRolls.Take(numToKeep).Sum(x => x.Item2.Item1);
+            var keptBolded = orderedRolls
+                .Take(numToKeep)
+                .Select(x => (x.Item1, (x.Item2.Item1, $"**{x.Item2.Item2}**")));
+            var discardCrossed = orderedRolls
+                .Skip(numToKeep)
+                .Select(x => (x.Item1, (x.Item2.Item1, $"~~{x.Item2.Item2}~~")));
+            var complete = keptBolded
+                .Concat(discardCrossed)
+                .OrderBy(x=> x.Item1)
+                .Select(x => x.Item2)
+                .ToArray();
+
+
+
+            var textual = $"[{string.Join(", ", complete.Select(x => x.Item2))}]";
+
+            return (numerical, textual);
         }
 
         public override (double, string) VisitDecimalNum(DiceParser.DecimalNumContext context)
@@ -130,28 +176,53 @@ namespace BestDiceRollerBot
                 return new Tuple<int, int>(newNum, newNum);
             }).ToList();
             var numerical = baseRoll + extraRolls.Sum();
-            var textual = $"[{string.Join(',', extraRolls.Prepend(baseRoll))}]";
+            var textual = "";
+            if (extraRolls.Count == 0)
+            {
+                textual = $"{string.Join(',', extraRolls.Prepend(baseRoll))}";
+            }
+            else
+            {
+                textual = $"[{string.Join(',', extraRolls.Prepend(baseRoll))}]";
+            }
+
+            return (numerical, textual);
+        }
+
+        public override (double, string) VisitDiceRoll(DiceParser.DiceRollContext context)
+        {
+            var numDice = context.naturalNum() is not null ? int.Parse(context.naturalNum().GetText()) : 1;
+            var rolls = Enumerable.Range(0, numDice).Select(_ => Visit(context.dieRoll())).ToArray();
+            var numerical = rolls.Sum(x => x.Item1);
+            var textual = "";
+            if (numDice == 1)
+            {
+                textual = $"{string.Join(',', rolls.Select(x => x.Item2))}";
+            }
+            else
+            {
+                textual = $"[{string.Join(',', rolls.Select(x => x.Item2))}]";
+            }
+
             return (numerical, textual);
         }
 
         public override (double, string) VisitDieRoll(DiceParser.DieRollContext context)
         {
             var exploding = context.ExplodeMark() is not null;
-            var numDice = context.naturalNum().Length > 1 ? int.Parse(context.naturalNum(0).GetText()) : 1;
-            var diceSize = int.Parse(context.naturalNum().Last().GetText());
+            var diceSize = int.Parse(context.naturalNum().GetText());
 
             if (!exploding)
             {
-                var rolls = Enumerable.Range(0, numDice).Select(_ => Program.Generator.Get(1, diceSize + 1)).ToList();
-                var numerical = rolls.Sum();
-                var textual = $"[{string.Join(',', rolls)}]";
-                return (numerical, textual);
+                var roll = Program.Generator.Get(1, diceSize + 1);
+                var textual = $"{roll}";
+                return (roll, textual);
             }
             else
             {
-                var rolls = Enumerable.Range(0, numDice).Select(_ => RollExplodingDice(diceSize)).ToList();
-                var numerical = rolls.Select(t => t.Item1).Sum();
-                var textual = $"[{string.Join(',', rolls.Select(t => t.Item2))}]";
+                var rolls = RollExplodingDice(diceSize);
+                var numerical = rolls.Item1;
+                var textual = $"{rolls.Item2}";
                 return (numerical, textual);
             }
         }

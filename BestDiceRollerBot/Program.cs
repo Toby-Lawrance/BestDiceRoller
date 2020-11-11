@@ -71,7 +71,7 @@ namespace BestDiceRollerBot
             if (message == null) return;
             if (message.Author.IsBot) return; //Else will respond to self responses
 
-            const string textRollSyntax = @"\[\[(?<expression>[dD\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
+            const string textRollSyntax = @"\[\[(?<expression>[dDkhl\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
             
             var matches = Regex.Matches(message.Content, textRollSyntax);
             if(matches.Count == 0) return; //None found
