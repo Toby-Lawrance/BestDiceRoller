@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -34,6 +37,8 @@ namespace BestDiceRollerBot
 
             _client.Log += Log;
 
+            _client.MessageReceived += HandleTextAsync;
+
             var commandService = new CommandService();
             var handler = new CommandHandler(_client,commandService);
             await handler.InstallCommandsAsync();
@@ -58,6 +63,42 @@ namespace BestDiceRollerBot
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+        }
+
+        private async Task HandleTextAsync(SocketMessage messageParam)
+        {
+            var message = messageParam as SocketUserMessage;
+            if (message == null) return;
+            if (message.Author.IsBot) return; //Else will respond to self responses
+
+            const string textRollSyntax = @"\[\[(?<expression>[dD\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
+            
+            var matches = Regex.Matches(message.Content, textRollSyntax);
+            if(matches.Count == 0) return; //None found
+            
+            List<(string,string)> diceRollRequestsLongShort = new List<(string,string)>();
+            
+            foreach (Match match in matches)
+            {
+                var request = match.Groups["expression"].Value;
+                var evaluated = RollCommand.EvaluateDiceRequest(request).ToList();
+                var text = string.Join(", ", evaluated.Select(t => t.Item2));
+                var totals = string.Join(", ", evaluated.Select(t => t.Item1));
+                var output = $"({request} => {text} = {totals})";
+                var shortOutput = $"({request} => { totals })";
+                diceRollRequestsLongShort.Add((output,shortOutput));
+            }
+
+            var allLongRequests = string.Join(", ", diceRollRequestsLongShort.Select(t => t.Item1));
+            var finalOutput = $"{message.Author.Mention} -> {allLongRequests}";
+            if (finalOutput.Length > DiscordConfig.MaxMessageSize)
+            {
+                var allShortRequests = string.Join(", ", diceRollRequestsLongShort.Select(t => t.Item2));
+                finalOutput = $"{message.Author.Mention} (shortened) -> {allShortRequests}";
+            }
+            var context = new SocketCommandContext(_client, message);
+
+            await context.Channel.SendMessageAsync(finalOutput);
         }
 
         private Task Log(LogMessage msg)

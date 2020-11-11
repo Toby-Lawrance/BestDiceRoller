@@ -15,7 +15,7 @@
 fragment DIGIT : [0-9] ;
 fragment POSITIVEDIGIT : [1-9] ;
 
-DieD : 'd' ;
+DieD : ('d' | 'D') ;
 ExplodeMark : '!' ;
 Natural : POSITIVEDIGIT(DIGIT)* ;
 TermOperator : ('+'|'-') ;
