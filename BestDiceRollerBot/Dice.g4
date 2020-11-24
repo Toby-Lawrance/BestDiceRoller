@@ -22,8 +22,8 @@
 fragment DIGIT : [0-9] ;
 fragment POSITIVEDIGIT : [1-9] ;
 
-KeepHighest : 'kh' ;
-KeepLowest : 'kl' ;
+KeepHighest : ('k')?'h' ;
+KeepLowest : ('k')?'l' ;
 DieD : ('d' | 'D') ;
 ExplodeMark : '!' ;
 Natural : (POSITIVEDIGIT)DIGIT* ;
