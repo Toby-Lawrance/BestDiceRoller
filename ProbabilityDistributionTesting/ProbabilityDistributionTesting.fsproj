@@ -11,6 +11,7 @@
         <PackageReference Include="NUnit" Version="3.12.0" />
         <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
+        <PackageReference Include="ParallelisationLibrary" Version="1.0.0.1" />
         <PackageReference Include="XPlot.Plotly" Version="3.0.1" />
     </ItemGroup>
 
