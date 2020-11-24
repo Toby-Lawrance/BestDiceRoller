@@ -71,7 +71,7 @@ namespace BestDiceRollerBot
             if (message == null) return;
             if (message.Author.IsBot) return; //Else will respond to self responses
 
-            const string textRollSyntax = @"\[\[(?<expression>[dDkhl\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
+            const string textRollSyntax = @"(?:(?<label>\w+?)\s*?\:\s*?)?\[\[(?<expression>[dDkhl\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
             
             var matches = Regex.Matches(message.Content, textRollSyntax);
             if(matches.Count == 0) return; //None found
@@ -81,11 +81,17 @@ namespace BestDiceRollerBot
             foreach (Match match in matches)
             {
                 var request = match.Groups["expression"].Value;
+                var label = match.Groups["label"].Value;
                 var evaluated = RollCommand.EvaluateDiceRequest(request).ToList();
                 var text = string.Join(", ", evaluated.Select(t => t.Item2));
                 var totals = string.Join(", ", evaluated.Select(t => t.Item1));
                 var output = $"({request} => {text} = {totals})";
                 var shortOutput = $"({request} => { totals })";
+                if (!String.IsNullOrWhiteSpace(label))
+                {
+                    output = $"**{label}**: ({request} => {text} = {totals})";
+                    shortOutput = $"**{label}**: ({request} => { totals })";
+                }
                 diceRollRequestsLongShort.Add((output,shortOutput));
             }
 
