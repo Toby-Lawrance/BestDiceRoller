@@ -2,7 +2,7 @@ module ProbabilityDistributionTesting
 
 open NUnit.Framework
 open BestDiceRollerBot
-open ParallelisationLibrary.Extensions
+open ParallelisationLibrary
 open NUnit.Framework
 open XPlot
 open XPlot.Plotly
@@ -16,7 +16,7 @@ let rollNum = 1_000_000
 let ranges = [ 1 .. 100 ]
 
 let rolls range =
-    List.map (fun _ -> roller.Get(1, range + 1)) [ 1 .. rollNum ]
+    List.init rollNum (fun _ -> roller.Get(1, range + 1))
 
 [<SetUp>]
 let Setup () = ()
@@ -113,3 +113,13 @@ let ``Make a graph to show consecutive dice rolls`` () =
         |> Chart.WithTitle(string r)
         |> Chart.WithLegend true)
     |> Chart.ShowAll
+
+[<Test>]
+let ``GenerateLongListOfNumbers`` () =
+    let allRolls =
+        List.pMap (fun r -> (r,rolls r)) [100;250;1000;10000]
+        
+    List.map (fun (size,rolls) -> System.IO.File.WriteAllText("Z:/"+(string size)+"rolls.txt",String.concat "," (List.map string rolls) )) allRolls
+    |> ignore
+    Assert.Pass()
+    
