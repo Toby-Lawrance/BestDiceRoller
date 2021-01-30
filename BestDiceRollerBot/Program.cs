@@ -71,7 +71,7 @@ namespace BestDiceRollerBot
             if (message == null) return;
             if (message.Author.IsBot) return; //Else will respond to self responses
 
-            const string textRollSyntax = @"(?:(?<label>\w+?)\s*?\:\s*?)?\[\[(?<expression>[dDkhl\s\d\.\(\)\,\!\+\-\*\/\^]+)\]\]";
+            const string textRollSyntax = @"(?:(?<label>\w+?)\s*?\:\s*?)?\[\[(?<expression>[dDkhl\s\d\.\,\(\)\,\!\+\-\*\/\^]+)\]\]";
             
             var matches = Regex.Matches(message.Content, textRollSyntax);
             if(matches.Count == 0) return; //None found
@@ -82,24 +82,24 @@ namespace BestDiceRollerBot
             {
                 var request = match.Groups["expression"].Value;
                 var label = match.Groups["label"].Value;
-                var evaluated = RollCommand.EvaluateDiceRequest(request).ToList();
-                var text = string.Join(", ", evaluated.Select(t => t.Item2));
-                var totals = string.Join(", ", evaluated.Select(t => t.Item1));
+                var results = RollCommand.EvaluateDiceRequest(request).ToArray();
+                var text = string.Join(", ", results.Select(t => t.Item2));
+                var totals = string.Join(", ", results.Select(t => $"`{t.Item1}`"));
                 var output = $"({request} => {text} = {totals})";
                 var shortOutput = $"({request} => { totals })";
                 if (!String.IsNullOrWhiteSpace(label))
                 {
-                    output = $"**{label}**: ({request} => {text} = {totals})";
-                    shortOutput = $"**{label}**: ({request} => { totals })";
+                    output = $"**{label}**: ({request} => {text} = **{totals}**)";
+                    shortOutput = $"**{label}**: ({request} => **{totals}**)";
                 }
                 diceRollRequestsLongShort.Add((output,shortOutput));
             }
 
-            var allLongRequests = string.Join(", ", diceRollRequestsLongShort.Select(t => t.Item1));
-            var finalOutput = $"{message.Author.Mention} -> {allLongRequests}";
+            var allLongRequests = string.Join(",\n", diceRollRequestsLongShort.Select(t => t.Item1));
+            var finalOutput = diceRollRequestsLongShort.Count > 1 ? $"{message.Author.Mention} ->\n{allLongRequests}" : $"{message.Author.Mention} -> {allLongRequests}";
             if (finalOutput.Length > DiscordConfig.MaxMessageSize)
             {
-                var allShortRequests = string.Join(", ", diceRollRequestsLongShort.Select(t => t.Item2));
+                var allShortRequests = string.Join(",\n", diceRollRequestsLongShort.Select(t => t.Item2));
                 finalOutput = $"{message.Author.Mention} (shortened) -> {allShortRequests}";
             }
             var context = new SocketCommandContext(_client, message);

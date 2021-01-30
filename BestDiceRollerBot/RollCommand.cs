@@ -12,12 +12,12 @@ namespace BestDiceRollerBot
     {
         public static IEnumerable<(double,string)> EvaluateDiceRequest(string arg)
         {
-            var requests = arg.Split(',').Select(arg => arg.Trim()).Select(e => Task.Run(() => EvaluateExpression(e))).ToArray();
-            Task.WaitAll(requests);
-            return requests.Select(t => t.Result);
+            var request = Task.Run(() => EvaluateExpression(arg.Trim()));
+            request.Wait();
+            return request.Result;
         }
         
-        public static (double,string) EvaluateExpression(string exp)
+        public static IEnumerable<(double,string)> EvaluateExpression(string exp)
         {
             try
             {
@@ -26,14 +26,14 @@ namespace BestDiceRollerBot
                 var lexer = new DiceLexer(inputStream);
                 var tokenStream = new CommonTokenStream(lexer);
                 var parser = new DiceParser(tokenStream);
-                var context = parser.expression();
-                var evaluator = new DiceEvaluator();
+                var context = parser.request();
+                var evaluator = new RequestEvaluator();
                 return evaluator.Visit(context);
             }
             catch (Exception e)
             {
                 Console.WriteLine(e);
-                return (0.0, "Failed to parse and evaluate");
+                return new []{(0.0, "Failed to parse and evaluate")};
             }
         }
         
@@ -44,11 +44,11 @@ namespace BestDiceRollerBot
         {
             var results = EvaluateDiceRequest(argument).ToArray();
             var text = string.Join(", ", results.Select(t => t.Item2));
-            var totals = string.Join(", ", results.Select(t => t.Item1));
-            var output = $"{this.Context.User.Mention} => {text} = {totals}";
+            var totals = string.Join(", ", results.Select(t => $"`{t.Item1}`"));
+            var output = $"{this.Context.User.Mention} => {text} = **{totals}**";
             if (output.Length > DiscordConfig.MaxMessageSize)
             {
-                output = $"{this.Context.User.Mention} => {argument} (shortened) = {totals}";
+                output = $"{this.Context.User.Mention} => {argument} (shortened) = **{totals}**";
             }
 
             return ReplyAsync(output);

@@ -3,6 +3,7 @@
 /*
  * Parser Rules
  */
+ request: expression (Delimiter expression)* ;
  expression: multiplyTerm (termOperation multiplyTerm)*  ;
  termOperation: (AddOperator | SubOperator) ;
  multiplyTerm: powerTerm (multOperation powerTerm)* ;
@@ -12,7 +13,7 @@
  diceRoll: (naturalNum)? dieRoll ;
  dieRoll: DieD naturalNum (ExplodeMark)? ;
  keepExpression: keepOptions (KeepHighest | KeepLowest) naturalNum ;
- keepOptions: diceRoll | LeftBracket expression RightBracket (LeftBracket expression RightBracket)+ ; //Two or more expressions
+ keepOptions: diceRoll | LeftBracket expression  (Delimiter expression)+ RightBracket ; //Two or more expressions
  naturalNum: Natural;
  decimalNum: (SubOperator)?Natural(Fractional)?;
 
@@ -35,4 +36,5 @@ DivOperator: '/' ;
 PowerOperator: '^' ;
 LeftBracket: '(' ;
 RightBracket: ')' ;
+Delimiter: ',' ;
 WhiteSpace : [ \t\n\r]+ -> skip ;

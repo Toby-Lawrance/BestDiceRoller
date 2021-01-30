@@ -55,13 +55,13 @@ namespace BestDiceRollerBot
 
                         }
                         if (levelHeaded)
-                            return (nickAndEdges.Item1, RollCommand.EvaluateExpression(levelHeadedDiceRoll));
+                            return (nickAndEdges.Item1, RollCommand.EvaluateExpression(levelHeadedDiceRoll).First());
                             
                         if (improvedLevelHeaded)
                             return (nickAndEdges.Item1,
-                                RollCommand.EvaluateExpression(improvedLevelHeadedDiceRoll));
+                                RollCommand.EvaluateExpression(improvedLevelHeadedDiceRoll).First());
                         
-                        return (nickAndEdges.Item1, RollCommand.EvaluateExpression(standardInitiativeDiceRoll));
+                        return (nickAndEdges.Item1, RollCommand.EvaluateExpression(standardInitiativeDiceRoll).First());
                     })
                     .Select( t =>
                     {
@@ -87,7 +87,7 @@ namespace BestDiceRollerBot
             var rolls = new List<(double, string)>();
             do
             {
-                roll = RollCommand.EvaluateExpression(standardInitiativeDiceRoll);
+                roll = RollCommand.EvaluateExpression(standardInitiativeDiceRoll).First();
                 if (predicate(roll))
                 {
                     roll.Item2 = $"~~{roll.Item2}~~";

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using Discord.Rest;
 
 namespace BestDiceRollerBot
 {
@@ -23,7 +22,7 @@ namespace BestDiceRollerBot
         {
             return string.Concat(Enumerable.Repeat(c, depth));
         }
-
+        
         public override (double, string) VisitExpression([NotNull] DiceParser.ExpressionContext context)
         {
             var operandCtxs = context.multiplyTerm();
