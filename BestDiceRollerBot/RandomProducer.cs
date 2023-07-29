@@ -7,12 +7,12 @@ namespace BestDiceRollerBot
 {
     public class RandomProducer
     {
-        private readonly RNGCryptoServiceProvider _gen;
+        private readonly RandomNumberGenerator _gen;
         private readonly byte genSize = sizeof(uint);
 
         public RandomProducer()
         {
-            _gen = new RNGCryptoServiceProvider();
+            _gen = RandomNumberGenerator.Create();
         }
 
         public int Get(int inMin, int exMax)
