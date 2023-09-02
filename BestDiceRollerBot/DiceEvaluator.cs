@@ -10,7 +10,7 @@ namespace BestDiceRollerBot
     public class DiceEvaluator : DiceBaseVisitor<(double, string)>
     {
         private readonly Dictionary<string, Func<double, double, double>> _funcMap =
-            new Dictionary<string, Func<double, double, double>>
+            new()
             {
                 {"+", (a, b) => a + b},
                 {"-", (a, b) => a - b},
@@ -18,11 +18,6 @@ namespace BestDiceRollerBot
                 {"/", (a, b) => a / b}
             };
 
-        private string Spacing(int depth, char c = '\t')
-        {
-            return string.Concat(Enumerable.Repeat(c, depth));
-        }
-        
         public override (double, string) VisitExpression([NotNull] DiceParser.ExpressionContext context)
         {
             var operandCtxs = context.multiplyTerm();
@@ -175,15 +170,9 @@ namespace BestDiceRollerBot
                 return new Tuple<int, int>(newNum, newNum);
             }).ToList();
             var numerical = baseRoll + extraRolls.Sum();
-            var textual = "";
-            if (extraRolls.Count == 0)
-            {
-                textual = $"{string.Join(',', extraRolls.Prepend(baseRoll))}";
-            }
-            else
-            {
-                textual = $"[{string.Join(',', extraRolls.Prepend(baseRoll))}]";
-            }
+            var textual = extraRolls.Count == 0 ? 
+                $"{string.Join(',', extraRolls.Prepend(baseRoll))}" : 
+                $"[{string.Join(',', extraRolls.Prepend(baseRoll))}]";
 
             return (numerical, textual);
         }
@@ -193,15 +182,9 @@ namespace BestDiceRollerBot
             var numDice = context.naturalNum() is not null ? int.Parse(context.naturalNum().GetText()) : 1;
             var rolls = Enumerable.Range(0, numDice).Select(_ => Visit(context.dieRoll())).ToArray();
             var numerical = rolls.Sum(x => x.Item1);
-            var textual = "";
-            if (numDice == 1)
-            {
-                textual = $"{string.Join(',', rolls.Select(x => x.Item2))}";
-            }
-            else
-            {
-                textual = $"[{string.Join(',', rolls.Select(x => x.Item2))}]";
-            }
+            var textual = numDice == 1 ? 
+                $"{string.Join(',', rolls.Select(x => x.Item2))}" : 
+                $"[{string.Join(',', rolls.Select(x => x.Item2))}]";
 
             return (numerical, textual);
         }
